@@ -2,9 +2,11 @@
 layout: default
 ---
 
+* [Vim Modes Transition Diagram] (vimModeStateDiagram.svg)
+* [Link to another page](./another-page.html)
+
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
-[Link to another page](./another-page.html).
 
 There should be whitespace between paragraphs.
 
