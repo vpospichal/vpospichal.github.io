@@ -2,7 +2,7 @@
 layout: default
 ---
 
-* [Vim Modes Transition Diagram] (vimModeStateDiagram.svg)
+* [Vim Modes Transition Diagram] (./vimModeStateDiagram.svg)
 * [Link to another page](./another-page.html)
 
 Text can be **bold**, _italic_, or ~~strikethrough~~.
