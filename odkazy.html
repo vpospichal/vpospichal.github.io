@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Moje odkazy</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px; }
+    li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Moje oblíbené odkazy</h1>
+
+  <input type="text" id="linkName" placeholder="Název odkazu">
+  <input type="text" id="linkURL" placeholder="URL (https://...)">
+  <button onclick="addLink()">Přidat</button>
+
+  <ul id="linksList"></ul>
+
+  <script>
+    let links = JSON.parse(localStorage.getItem('links')) || [];
+
+    function renderLinks() {
+      const list = document.getElementById('linksList');
+      list.innerHTML = '';
+      links.forEach((link, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${link.url}" target="_blank">${link.name}</a>
+          <button onclick="deleteLink(${index})">🗑️</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function addLink() {
+      const name = document.getElementById('linkName').value;
+      const url = document.getElementById('linkURL').value;
+      if (!name || !url) return alert("Vyplň název i URL.");
+      links.push({ name, url });
+      localStorage.setItem('links', JSON.stringify(links));
+      renderLinks();
+      document.getElementById('linkName').value = '';
+      document.getElementById('linkURL').value = '';
+    }
+
+    function deleteLink(index) {
+      links.splice(index, 1);
+      localStorage.setItem('links', JSON.stringify(links));
+      renderLinks();
+    }
+
+    renderLinks();
+  </script>
+</body>
+</html>
+
