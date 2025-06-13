@@ -72,7 +72,7 @@
           span.className = 'bit';
 
           if (globalBitIndex < prefix) {
-            span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
+            span.classList.add(globalBitIndex < supernetPrefix ? 'network' : 'subnet');
           } else {
             span.classList.add('host');
           }
@@ -139,13 +139,12 @@
         const bitRow = renderBitRow(subnetBase, prefix);
 
         const infoDiv = document.createElement('div');
-        infoDiv.style.marginLeft = '20px';
         infoDiv.innerHTML = `
           <strong>Podsíť ${i + 0}:</strong>
-          Adresa: <strong>${intToIp(subnetBase)}</strong> /${prefix}
-          Broadcast: ${intToIp(broadcast)}
-          Rozsah hostů: ${intToIp(firstHost)} – ${intToIp(lastHost)}
-          Velikost: ${subnetSize - 2} hostů
+          Adresa: <strong>${intToIp(subnetBase)}/${prefix}</strong> 
+          Broadcast: <strong>${intToIp(broadcast)}</strong>
+          Rozsah hostů: <strong>${intToIp(firstHost)}–${intToIp(lastHost)}</strong>
+          Velikost: <strong>${subnetSize - 2}</strong> hostů
         `;
 
         const row = document.createElement('div');
