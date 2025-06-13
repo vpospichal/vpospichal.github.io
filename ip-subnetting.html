@@ -95,7 +95,10 @@
         }
       });
 
-      generateSubnets(ipToInt(ip), prefix);
+      const baseIpInt = ipToInt(ip);
+      const mask = 0xFFFFFFFF << (32 - prefix) >>> 0;
+      const networkBase = baseIpInt & mask;
+      generateSubnets(networkBase, prefix);
     }
 
     function generateSubnets(baseIpInt, prefix) {
