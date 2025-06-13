@@ -34,7 +34,7 @@
   <div><strong>Binární reprezentace IP adresy:</strong></div>
   <div id="bitDisplay" style="margin: 10px 0;"></div>
 
-  <h3>📋 Seznam podsítí</h3>
+  <h3>📋 Seznam podsítí (<span id="subnetCount"></span>)</h3>
   <div id="subnetList"></div>
 
   <script>
@@ -45,6 +45,7 @@
     const supernetLabel = document.getElementById("supernetLabel");
     const bitDisplay = document.getElementById("bitDisplay");
     const subnetList = document.getElementById("subnetList");
+    const subnetCountID = document.getElementById("subnetCount");
 
     function ipToInt(ip) {
       const parts = ip.trim().split('.');
@@ -130,6 +131,8 @@
       const subnetSize = Math.pow(2, 32 - prefix);
       const supernetSize = Math.pow(2, 32 - supernetPrefix);
       const subnetCount = supernetSize / subnetSize;
+	  subnetCountID.innerHTML = subnetCount;
+	  
 
       for (let i = 0; i < subnetCount; i++) {
         const subnetBase = networkBase + i * subnetSize;
