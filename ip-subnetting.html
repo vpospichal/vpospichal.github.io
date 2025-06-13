@@ -27,8 +27,12 @@
   <label>IP adresa (např. 192.168.1.0):</label><br/>
   <input type="text" id="ipInput" value="192.168.1.0"/><br/>
 
+<label>Výchozí maska sítě (supernet): <span id="supernetLabel">16</span></label><br/>
+<input type="range" min="8" max="30" value="16" id="supernetSlider"/><br/>
+
   <label>Prefix (CIDR): <span id="prefixLabel">24</span></label><br/>
   <input type="range" min="16" max="30" value="24" id="prefixSlider"/><br/>
+
 
   <div><strong>Binární reprezentace IP adresy:</strong></div>
   <div id="bitDisplay" style="margin: 10px 0;"></div>
@@ -42,6 +46,15 @@
     const prefixLabel = document.getElementById("prefixLabel");
     const bitDisplay = document.getElementById("bitDisplay");
     const subnetList = document.getElementById("subnetList");
+    const supernetSlider = document.getElementById("supernetSlider");
+    const supernetLabel = document.getElementById("supernetLabel");
+    const baseIpInt = ipToInt(ip);
+    const supernetMask = 0xFFFFFFFF << (32 - supernetPrefix) >>> 0;
+    const networkBase = baseIpInt & supernetMask;
+    const supernetSize = Math.pow(2, 32 - supernetPrefix);
+    const baseIpInt = ipToInt(ip);
+    const mask = 0xFFFFFFFF << (32 - prefix) >>> 0;
+    const networkBase = baseIpInt & mask;
 
     function ipToInt(ip) {
       return ip.split('.').reduce((acc, val) => (acc << 8) + parseInt(val), 0);
@@ -95,17 +108,22 @@
         }
       });
 
-      const baseIpInt = ipToInt(ip);
-      const mask = 0xFFFFFFFF << (32 - prefix) >>> 0;
-      const networkBase = baseIpInt & mask;
-      generateSubnets(networkBase, prefix);
+      const supernetPrefix = parseInt(supernetSlider.value);
+      supernetLabel.textContent = supernetPrefix;
+
+      // ochrana – nelze mít výsledný prefix menší než supernet
+      if (prefix < supernetPrefix) {
+        bitDisplay.innerHTML = "❌ Výsledný prefix nemůže být menší než výchozí maska!";
+        subnetList.innerHTML = "";
+        return;
+      }
     }
 
-    function generateSubnets(baseIpInt, prefix) {
+    function generateSubnets(networkBase, prefix, supernetSize) {
       subnetList.innerHTML = '';
 
       const subnetSize = Math.pow(2, 32 - prefix);
-      const subnetCount = Math.floor(Math.pow(2, prefix > 24 ? prefix - 24 : 0));
+      const subnetCount = supernetSize / subnetSize;
 
       for (let i = 0; i < subnetCount; i++) {
         const subnetBase = baseIpInt + i * subnetSize;
@@ -133,6 +151,7 @@
       }
     }
 
+    generateSubnets(networkBase, prefix, supernetSize);
     ipInput.addEventListener("input", updateBits);
     slider.addEventListener("input", updateBits);
     updateBits();
