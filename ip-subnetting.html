@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <title>Vizualizace IP dělení na podsítě</title>
+  <title>Vizualizace IP podsítí</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
     input, select { margin: 5px 0; padding: 5px; }
@@ -60,66 +60,49 @@
       const prefix = parseInt(slider.value);
       prefixLabel.textContent = prefix;
 
-      const baseIpInt = ipToInt(ip);
-const octets = ip.split('.');
-bitDisplay.innerHTML = '';
-
-octets.forEach((octet, octetIndex) => {
-  const binOctet = parseInt(octet).toString(2).padStart(8, '0');
-  for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
-    const bit = binOctet[bitIndex];
-    const globalBitIndex = octetIndex * 8 + bitIndex;
-
-    const span = document.createElement('span');
-    span.className = 'bit';
-    if (globalBitIndex < prefix) {
-      span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
-    } else {
-      span.classList.add('host');
-    }
-
-    span.textContent = bit;
-    bitDisplay.appendChild(span);
-  }
-
-  // mezera mezi oktety
-  if (octetIndex < 3) {
-    const spacer = document.createElement('span');
-    spacer.className = 'octet-separator';
-    bitDisplay.appendChild(spacer);
-  }
-});
+      const octets = ip.split('.');
       bitDisplay.innerHTML = '';
 
-      for (let i = 0; i < 32; i++) {
-        const span = document.createElement('span');
-        span.className = 'bit';
-        const bit = bin[i];
-        if (i < prefix) {
-          span.classList.add(i < 24 ? 'network' : 'subnet');
-        } else {
-          span.classList.add('host');
+      if (octets.length !== 4 || octets.some(o => isNaN(o) || o < 0 || o > 255)) {
+        bitDisplay.textContent = "❌ Neplatná IP adresa!";
+        subnetList.innerHTML = "";
+        return;
+      }
+
+      octets.forEach((octet, octetIndex) => {
+        const binOctet = parseInt(octet).toString(2).padStart(8, '0');
+        for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
+          const bit = binOctet[bitIndex];
+          const globalBitIndex = octetIndex * 8 + bitIndex;
+
+          const span = document.createElement('span');
+          span.className = 'bit';
+
+          if (globalBitIndex < prefix) {
+            span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
+          } else {
+            span.classList.add('host');
+          }
+
+          span.textContent = bit;
+          bitDisplay.appendChild(span);
         }
 
-        span.textContent = bit;
-        bitDisplay.appendChild(span);
-
-        if ((i + 1) % 8 === 0 && i < 31) {
+        if (octetIndex < 3) {
           const spacer = document.createElement('span');
           spacer.className = 'octet-separator';
           bitDisplay.appendChild(spacer);
         }
-      }
+      });
 
-      generateSubnets(baseIpInt, prefix);
+      generateSubnets(ipToInt(ip), prefix);
     }
 
     function generateSubnets(baseIpInt, prefix) {
       subnetList.innerHTML = '';
 
-      const newBits = prefix - 24; // kolik bitů je přidáno pro podsítě
       const subnetSize = Math.pow(2, 32 - prefix);
-      const subnetCount = Math.pow(2, prefix > 24 ? prefix - 24 : 0);
+      const subnetCount = Math.floor(Math.pow(2, prefix > 24 ? prefix - 24 : 0));
 
       for (let i = 0; i < subnetCount; i++) {
         const subnetBase = baseIpInt + i * subnetSize;
@@ -129,13 +112,16 @@ octets.forEach((octet, octetIndex) => {
 
         const div = document.createElement('div');
         div.className = 'subnet-box';
+
+        const binIp = intToIp(subnetBase)
+          .split('.')
+          .map(o => parseInt(o).toString(2).padStart(8, '0'))
+          .join('.');
+
         div.innerHTML = `
           <strong>Podsíť ${i + 1}:</strong><br/>
           Adresa podsítě: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
-          Binárně: <span class="ip-binary">${
-            intToIp(subnetBase).split('.')
-            .map(oct => parseInt(oct).toString(2).padStart(8, '0')).join('.')
-          }</span><br/>
+          Binárně: <span class="ip-binary">${binIp}</span><br/>
           Broadcast: ${intToIp(broadcast)}<br/>
           Rozsah hostů: ${intToIp(firstHost)} - ${intToIp(lastHost)}<br/>
           Velikost: ${subnetSize - 2} hostů
