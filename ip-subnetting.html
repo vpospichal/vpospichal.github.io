@@ -18,7 +18,6 @@
       border-left: 5px solid #4caf50;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .ip-binary { font-family: monospace; }
   </style>
 </head>
 <body>
@@ -49,13 +48,48 @@
     const subnetList = document.getElementById("subnetList");
 
     function ipToInt(ip) {
-      const parts = ip.split('.');
+      const parts = ip.trim().split('.');
       if (parts.length !== 4) return null;
-      return parts.reduce((acc, val) => (acc << 8) + parseInt(val), 0);
+      const nums = parts.map(p => parseInt(p));
+      if (nums.some(n => isNaN(n) || n < 0 || n > 255)) return null;
+      return nums.reduce((acc, val) => (acc << 8) + val, 0);
     }
 
     function intToIp(int) {
       return [(int >>> 24), (int >>> 16 & 255), (int >>> 8 & 255), (int & 255)].join('.');
+    }
+
+    function renderBitRow(ipInt, prefix) {
+      const octets = intToIp(ipInt).split('.');
+      const container = document.createElement('div');
+
+      octets.forEach((octet, octetIndex) => {
+        const binOctet = parseInt(octet).toString(2).padStart(8, '0');
+        for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
+          const bit = binOctet[bitIndex];
+          const globalBitIndex = octetIndex * 8 + bitIndex;
+
+          const span = document.createElement('span');
+          span.className = 'bit';
+
+          if (globalBitIndex < prefix) {
+            span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
+          } else {
+            span.classList.add('host');
+          }
+
+          span.textContent = bit;
+          container.appendChild(span);
+        }
+
+        if (octetIndex < 3) {
+          const spacer = document.createElement('span');
+          spacer.className = 'octet-separator';
+          container.appendChild(spacer);
+        }
+      });
+
+      return container;
     }
 
     function updateBits() {
@@ -82,123 +116,57 @@
       const supernetMask = 0xFFFFFFFF << (32 - supernetPrefix) >>> 0;
       const networkBase = baseIpInt & supernetMask;
 
-      displayBits(networkBase, prefix);
+      // zobrazení binární IP nahoře
+      bitDisplay.innerHTML = '';
+      const topBits = renderBitRow(networkBase, prefix);
+      bitDisplay.appendChild(topBits);
+
       generateSubnets(networkBase, supernetPrefix, prefix);
     }
 
-    function displayBits(ipInt, prefix) {
-      const octets = intToIp(ipInt).split('.');
-      bitDisplay.innerHTML = '';
+    function generateSubnets(networkBase, supernetPrefix, prefix) {
+      subnetList.innerHTML = '';
 
-      octets.forEach((octet, octetIndex) => {
-        const binOctet = parseInt(octet).toString(2).padStart(8, '0');
-        for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
-          const bit = binOctet[bitIndex];
-          const globalBitIndex = octetIndex * 8 + bitIndex;
+      const subnetSize = Math.pow(2, 32 - prefix);
+      const supernetSize = Math.pow(2, 32 - supernetPrefix);
+      const subnetCount = supernetSize / subnetSize;
 
-          const span = document.createElement('span');
-          span.className = 'bit';
+      for (let i = 0; i < subnetCount; i++) {
+        const subnetBase = networkBase + i * subnetSize;
+        const broadcast = subnetBase + subnetSize - 1;
+        const firstHost = subnetSize > 2 ? subnetBase + 1 : subnetBase;
+        const lastHost = subnetSize > 2 ? broadcast - 1 : broadcast;
 
-          if (globalBitIndex < prefix) {
-            span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
-          } else {
-            span.classList.add('host');
-          }
+        const bitRow = renderBitRow(subnetBase, prefix);
 
-          span.textContent = bit;
-          bitDisplay.appendChild(span);
-        }
+        const infoDiv = document.createElement('div');
+        infoDiv.style.marginLeft = '20px';
+        infoDiv.innerHTML = `
+          <strong>Podsíť ${i + 1}:</strong><br/>
+          Adresa: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
+          Broadcast: ${intToIp(broadcast)}<br/>
+          Rozsah hostů: ${intToIp(firstHost)} – ${intToIp(lastHost)}<br/>
+          Velikost: ${subnetSize - 2} hostů
+        `;
 
-        if (octetIndex < 3) {
-          const spacer = document.createElement('span');
-          spacer.className = 'octet-separator';
-          bitDisplay.appendChild(spacer);
-        }
-      });
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.flexWrap = 'wrap';
+        row.appendChild(bitRow);
+        row.appendChild(infoDiv);
+
+        const div = document.createElement('div');
+        div.className = 'subnet-box';
+        div.appendChild(row);
+        subnetList.appendChild(div);
+      }
     }
 
-	function renderBitRow(ipInt, prefix) {
-		const octets = intToIp(ipInt).split('.');
-		const container = document.createElement('div');
-
-		octets.forEach((octet, octetIndex) => {
-			const binOctet = parseInt(octet).toString(2).padStart(8, '0');
-			for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
-				const bit = binOctet[bitIndex];
-				const globalBitIndex = octetIndex * 8 + bitIndex;
-
-				const span = document.createElement('span');
-				span.className = 'bit';
-
-				if (globalBitIndex < prefix) {
-					span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
-				} else {
-					span.classList.add('host');
-				}
-
-				span.textContent = bit;
-				container.appendChild(span);
-			}
-
-			if (octetIndex < 3) {
-				const spacer = document.createElement('span');
-				spacer.className = 'octet-separator';
-				container.appendChild(spacer);
-			}
-		});
-
-		return container;
-	}
-
-	function generateSubnets(networkBase, supernetPrefix, prefix) {
-		subnetList.innerHTML = '';
-
-		const subnetSize = Math.pow(2, 32 - prefix);
-		const supernetSize = Math.pow(2, 32 - supernetPrefix);
-		const subnetCount = supernetSize / subnetSize;
-
-		for (let i = 0; i < subnetCount; i++) {
-			const subnetBase = networkBase + i * subnetSize;
-			const broadcast = subnetBase + subnetSize - 1;
-			const firstHost = subnetSize > 2 ? subnetBase + 1 : subnetBase;
-			const lastHost = subnetSize > 2 ? broadcast - 1 : broadcast;
-
-			const div = document.createElement('div');
-			div.className = 'subnet-box';
-
-			const bitRow = renderBitRow(subnetBase, prefix);
-
-			const infoDiv = document.createElement('div');
-			infoDiv.style.marginLeft = '20px';
-			infoDiv.innerHTML = `
-				<strong>Podsíť ${i + 1}:</strong><br/>
-				Adresa: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
-				Broadcast: ${intToIp(broadcast)}<br/>
-				Rozsah hostů: ${intToIp(firstHost)} - ${intToIp(lastHost)}<br/>
-				Velikost: ${subnetSize - 2} hostů
-			`;
-
-			const row = document.createElement('div');
-			row.style.display = 'flex';
-			row.style.alignItems = 'center';
-			row.style.flexWrap = 'wrap';
-			row.appendChild(bitRow);
-			row.appendChild(infoDiv);
-
-			const div = document.createElement('div');
-			div.className = 'subnet-box';
-			div.appendChild(row);
-
-			subnetList.appendChild(div);
-
-			subnetList.appendChild(div);
-		}
-	}
-
-	ipInput.addEventListener("input", updateBits);
-	slider.addEventListener("input", updateBits);
-	supernetSlider.addEventListener("input", updateBits);
-	updateBits();
+    ipInput.addEventListener("input", updateBits);
+    slider.addEventListener("input", updateBits);
+    supernetSlider.addEventListener("input", updateBits);
+    updateBits();
   </script>
 </body>
 </html>
