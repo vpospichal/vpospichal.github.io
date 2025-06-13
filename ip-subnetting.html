@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>IP Subnetting Vizualizátor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #f0f2f5;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    .subnet {
+      background: white;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 5px solid #4caf50;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>🖧 Subnetting Vizualizátor</h1>
+  <label>IP adresa s prefixem (např. 192.168.0.0/24):</label><br/>
+  <input type="text" id="ipInput" value="192.168.0.0/24"/><br/>
+  <label>Počet podsítí:</label><br/>
+  <input type="number" id="subnetCount" value="4"/><br/>
+  <button onclick="calculateSubnets()">Vypočítej podsítě</button>
+
+  <div id="output"></div>
+
+  <script>
+    function ipToInt(ip) {
+      return ip.split('.').reduce((acc, oct) => (acc << 8) + parseInt(oct), 0);
+    }
+
+    function intToIp(int) {
+      return [(int >>> 24), (int >>> 16 & 255), (int >>> 8 & 255), (int & 255)].join('.');
+    }
+
+    function calculateSubnets() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      const input = document.getElementById('ipInput').value;
+      const subnetCount = parseInt(document.getElementById('subnetCount').value);
+
+      const [baseIp, prefixStr] = input.split('/');
+      const prefix = parseInt(prefixStr);
+      const baseIpInt = ipToInt(baseIp);
+      const newBits = Math.ceil(Math.log2(subnetCount));
+      const newPrefix = prefix + newBits;
+      const subnetSize = Math.pow(2, 32 - newPrefix);
+
+      for (let i = 0; i < subnetCount; i++) {
+        const subnetBase = baseIpInt + i * subnetSize;
+        const firstHost = subnetBase + 1;
+        const lastHost = subnetBase + subnetSize - 2;
+        const broadcast = subnetBase + subnetSize - 1;
+
+        const subnetDiv = document.createElement('div');
+        subnetDiv.className = 'subnet';
+        subnetDiv.innerHTML = `
+          <strong>Podsíť ${i + 1}</strong><br/>
+          Adresa podsítě: ${intToIp(subnetBase)} /${newPrefix}<br/>
+          První host: ${intToIp(firstHost)}<br/>
+          Poslední host: ${intToIp(lastHost)}<br/>
+          Broadcast: ${intToIp(broadcast)}
+        `;
+        output.appendChild(subnetDiv);
+      }
+    }
+  </script>
+</body>
+</html>
