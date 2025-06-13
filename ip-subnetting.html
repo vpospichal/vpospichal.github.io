@@ -2,41 +2,57 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <title>IP Subnetting - bitová vizualizace</title>
+  <title>Vizualizace IP dělení na podsítě</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    .bit { display: inline-block; width: 20px; text-align: center; font-family: monospace; }
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    input, select { margin: 5px 0; padding: 5px; }
+    .bit { display: inline-block; width: 20px; text-align: center; font-family: monospace; padding: 2px; border: 1px solid #ccc; }
+    .octet-separator { margin-right: 10px; }
     .network { background: #2196f3; color: white; }
     .subnet { background: #4caf50; color: white; }
     .host { background: #e0e0e0; }
-    .label-row { margin-bottom: 5px; }
-    .ip-row { margin-bottom: 15px; }
-    .slider { margin: 10px 0; }
+    .subnet-box {
+      background: white;
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 5px solid #4caf50;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .ip-binary { font-family: monospace; }
   </style>
 </head>
 <body>
-  <h2>🔍 Vizualizace dělení IP na podsítě (bit po bitu)</h2>
+  <h2>🧠 IP Subnetting - vizualizace bitů a podsítí</h2>
 
   <label>IP adresa (např. 192.168.1.0):</label><br/>
-  <input type="text" id="ipInput" value="192.168.1.0"/><br/><br/>
+  <input type="text" id="ipInput" value="192.168.1.0"/><br/>
 
   <label>Prefix (CIDR): <span id="prefixLabel">24</span></label><br/>
-  <input type="range" min="16" max="30" value="24" id="prefixSlider" class="slider"/><br/>
+  <input type="range" min="16" max="30" value="24" id="prefixSlider"/><br/>
 
-  <div class="label-row"><strong>IP v binárním tvaru:</strong></div>
-  <div id="bitDisplay" class="ip-row"></div>
+  <div><strong>Binární reprezentace IP adresy:</strong></div>
+  <div id="bitDisplay" style="margin: 10px 0;"></div>
+
+  <h3>📋 Seznam podsítí</h3>
+  <div id="subnetList"></div>
 
   <script>
     const ipInput = document.getElementById("ipInput");
     const slider = document.getElementById("prefixSlider");
     const prefixLabel = document.getElementById("prefixLabel");
     const bitDisplay = document.getElementById("bitDisplay");
+    const subnetList = document.getElementById("subnetList");
 
-    function ipToBinary(ip) {
-      return ip.split('.').map(octet => {
-        let bin = parseInt(octet).toString(2);
-        return bin.padStart(8, '0');
-      }).join('');
+    function ipToInt(ip) {
+      return ip.split('.').reduce((acc, val) => (acc << 8) + parseInt(val), 0);
+    }
+
+    function intToIp(int) {
+      return [(int >>> 24), (int >>> 16 & 255), (int >>> 8 & 255), (int & 255)].join('.');
+    }
+
+    function intToBin(int) {
+      return int.toString(2).padStart(32, '0');
     }
 
     function updateBits() {
@@ -44,14 +60,14 @@
       const prefix = parseInt(slider.value);
       prefixLabel.textContent = prefix;
 
-      const bin = ipToBinary(ip);
+      const baseIpInt = ipToInt(ip);
+      const bin = intToBin(baseIpInt);
       bitDisplay.innerHTML = '';
 
       for (let i = 0; i < 32; i++) {
-        const bit = bin[i] || '0';
         const span = document.createElement('span');
         span.className = 'bit';
-
+        const bit = bin[i];
         if (i < prefix) {
           span.classList.add(i < 24 ? 'network' : 'subnet');
         } else {
@@ -60,13 +76,47 @@
 
         span.textContent = bit;
         bitDisplay.appendChild(span);
+
+        if ((i + 1) % 8 === 0 && i < 31) {
+          const spacer = document.createElement('span');
+          spacer.className = 'octet-separator';
+          bitDisplay.appendChild(spacer);
+        }
+      }
+
+      generateSubnets(baseIpInt, prefix);
+    }
+
+    function generateSubnets(baseIpInt, prefix) {
+      subnetList.innerHTML = '';
+
+      const newBits = prefix - 24; // kolik bitů je přidáno pro podsítě
+      const subnetSize = Math.pow(2, 32 - prefix);
+      const subnetCount = Math.pow(2, prefix > 24 ? prefix - 24 : 0);
+
+      for (let i = 0; i < subnetCount; i++) {
+        const subnetBase = baseIpInt + i * subnetSize;
+        const broadcast = subnetBase + subnetSize - 1;
+        const firstHost = subnetSize > 2 ? subnetBase + 1 : subnetBase;
+        const lastHost = subnetSize > 2 ? broadcast - 1 : broadcast;
+
+        const div = document.createElement('div');
+        div.className = 'subnet-box';
+        div.innerHTML = `
+          <strong>Podsíť ${i + 1}:</strong><br/>
+          Adresa podsítě: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
+          Binárně: <span class="ip-binary">${intToBin(subnetBase).match(/.{1,8}/g).join('.')}</span><br/>
+          Broadcast: ${intToIp(broadcast)}<br/>
+          Rozsah hostů: ${intToIp(firstHost)} - ${intToIp(lastHost)}<br/>
+          Velikost: ${subnetSize - 2} hostů
+        `;
+        subnetList.appendChild(div);
       }
     }
 
     ipInput.addEventListener("input", updateBits);
     slider.addEventListener("input", updateBits);
-
-    updateBits(); // Inicializace
+    updateBits();
   </script>
 </body>
 </html>
