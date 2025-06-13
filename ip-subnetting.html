@@ -15,7 +15,6 @@
       background: white;
       margin: 10px 0;
       padding: 10px;
-      border-left: 5px solid #4caf50;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
   </style>
@@ -142,10 +141,10 @@
         const infoDiv = document.createElement('div');
         infoDiv.style.marginLeft = '20px';
         infoDiv.innerHTML = `
-          <strong>Podsíť ${i + 1}:</strong><br/>
-          Adresa: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
-          Broadcast: ${intToIp(broadcast)}<br/>
-          Rozsah hostů: ${intToIp(firstHost)} – ${intToIp(lastHost)}<br/>
+          <strong>Podsíť ${i + 0}:</strong>
+          Adresa: <strong>${intToIp(subnetBase)}</strong> /${prefix}
+          Broadcast: ${intToIp(broadcast)}
+          Rozsah hostů: ${intToIp(firstHost)} – ${intToIp(lastHost)}
           Velikost: ${subnetSize - 2} hostů
         `;
 
