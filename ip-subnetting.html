@@ -2,77 +2,71 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <title>IP Subnetting Vizualizátor</title>
+  <title>IP Subnetting - bitová vizualizace</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-      background: #f0f2f5;
-    }
-    input, button {
-      padding: 8px;
-      margin: 5px;
-    }
-    .subnet {
-      background: white;
-      padding: 10px;
-      margin: 10px 0;
-      border-left: 5px solid #4caf50;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    .bit { display: inline-block; width: 20px; text-align: center; font-family: monospace; }
+    .network { background: #2196f3; color: white; }
+    .subnet { background: #4caf50; color: white; }
+    .host { background: #e0e0e0; }
+    .label-row { margin-bottom: 5px; }
+    .ip-row { margin-bottom: 15px; }
+    .slider { margin: 10px 0; }
   </style>
 </head>
 <body>
-  <h1>🖧 Subnetting Vizualizátor</h1>
-  <label>IP adresa s prefixem (např. 192.168.0.0/24):</label><br/>
-  <input type="text" id="ipInput" value="192.168.0.0/24"/><br/>
-  <label>Počet podsítí:</label><br/>
-  <input type="number" id="subnetCount" value="4"/><br/>
-  <button onclick="calculateSubnets()">Vypočítej podsítě</button>
+  <h2>🔍 Vizualizace dělení IP na podsítě (bit po bitu)</h2>
 
-  <div id="output"></div>
+  <label>IP adresa (např. 192.168.1.0):</label><br/>
+  <input type="text" id="ipInput" value="192.168.1.0"/><br/><br/>
+
+  <label>Prefix (CIDR): <span id="prefixLabel">24</span></label><br/>
+  <input type="range" min="16" max="30" value="24" id="prefixSlider" class="slider"/><br/>
+
+  <div class="label-row"><strong>IP v binárním tvaru:</strong></div>
+  <div id="bitDisplay" class="ip-row"></div>
 
   <script>
-    function ipToInt(ip) {
-      return ip.split('.').reduce((acc, oct) => (acc << 8) + parseInt(oct), 0);
+    const ipInput = document.getElementById("ipInput");
+    const slider = document.getElementById("prefixSlider");
+    const prefixLabel = document.getElementById("prefixLabel");
+    const bitDisplay = document.getElementById("bitDisplay");
+
+    function ipToBinary(ip) {
+      return ip.split('.').map(octet => {
+        let bin = parseInt(octet).toString(2);
+        return bin.padStart(8, '0');
+      }).join('');
     }
 
-    function intToIp(int) {
-      return [(int >>> 24), (int >>> 16 & 255), (int >>> 8 & 255), (int & 255)].join('.');
-    }
+    function updateBits() {
+      const ip = ipInput.value;
+      const prefix = parseInt(slider.value);
+      prefixLabel.textContent = prefix;
 
-    function calculateSubnets() {
-      const output = document.getElementById('output');
-      output.innerHTML = '';
+      const bin = ipToBinary(ip);
+      bitDisplay.innerHTML = '';
 
-      const input = document.getElementById('ipInput').value;
-      const subnetCount = parseInt(document.getElementById('subnetCount').value);
+      for (let i = 0; i < 32; i++) {
+        const bit = bin[i] || '0';
+        const span = document.createElement('span');
+        span.className = 'bit';
 
-      const [baseIp, prefixStr] = input.split('/');
-      const prefix = parseInt(prefixStr);
-      const baseIpInt = ipToInt(baseIp);
-      const newBits = Math.ceil(Math.log2(subnetCount));
-      const newPrefix = prefix + newBits;
-      const subnetSize = Math.pow(2, 32 - newPrefix);
+        if (i < prefix) {
+          span.classList.add(i < 24 ? 'network' : 'subnet');
+        } else {
+          span.classList.add('host');
+        }
 
-      for (let i = 0; i < subnetCount; i++) {
-        const subnetBase = baseIpInt + i * subnetSize;
-        const firstHost = subnetBase + 1;
-        const lastHost = subnetBase + subnetSize - 2;
-        const broadcast = subnetBase + subnetSize - 1;
-
-        const subnetDiv = document.createElement('div');
-        subnetDiv.className = 'subnet';
-        subnetDiv.innerHTML = `
-          <strong>Podsíť ${i + 1}</strong><br/>
-          Adresa podsítě: ${intToIp(subnetBase)} /${newPrefix}<br/>
-          První host: ${intToIp(firstHost)}<br/>
-          Poslední host: ${intToIp(lastHost)}<br/>
-          Broadcast: ${intToIp(broadcast)}
-        `;
-        output.appendChild(subnetDiv);
+        span.textContent = bit;
+        bitDisplay.appendChild(span);
       }
     }
+
+    ipInput.addEventListener("input", updateBits);
+    slider.addEventListener("input", updateBits);
+
+    updateBits(); // Inicializace
   </script>
 </body>
 </html>
