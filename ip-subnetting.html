@@ -61,6 +61,7 @@
     function renderBitRow(ipInt, prefix) {
       const octets = intToIp(ipInt).split('.');
       const container = document.createElement('div');
+      const supernetPrefix = parseInt(supernetSlider.value);
 
       octets.forEach((octet, octetIndex) => {
         const binOctet = parseInt(octet).toString(2).padStart(8, '0');
