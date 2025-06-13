@@ -61,7 +61,34 @@
       prefixLabel.textContent = prefix;
 
       const baseIpInt = ipToInt(ip);
-      const bin = intToBin(baseIpInt);
+const octets = ip.split('.');
+bitDisplay.innerHTML = '';
+
+octets.forEach((octet, octetIndex) => {
+  const binOctet = parseInt(octet).toString(2).padStart(8, '0');
+  for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
+    const bit = binOctet[bitIndex];
+    const globalBitIndex = octetIndex * 8 + bitIndex;
+
+    const span = document.createElement('span');
+    span.className = 'bit';
+    if (globalBitIndex < prefix) {
+      span.classList.add(globalBitIndex < 24 ? 'network' : 'subnet');
+    } else {
+      span.classList.add('host');
+    }
+
+    span.textContent = bit;
+    bitDisplay.appendChild(span);
+  }
+
+  // mezera mezi oktety
+  if (octetIndex < 3) {
+    const spacer = document.createElement('span');
+    spacer.className = 'octet-separator';
+    bitDisplay.appendChild(spacer);
+  }
+});
       bitDisplay.innerHTML = '';
 
       for (let i = 0; i < 32; i++) {
