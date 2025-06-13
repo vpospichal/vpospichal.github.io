@@ -2,9 +2,9 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <title>Vizualizace IP podsítí</title>
+  <title>IP Dělení na Podsítě</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
     input, select { margin: 5px 0; padding: 5px; }
     .bit { display: inline-block; width: 20px; text-align: center; font-family: monospace; padding: 2px; border: 1px solid #ccc; }
     .octet-separator { margin-right: 10px; }
@@ -22,17 +22,16 @@
   </style>
 </head>
 <body>
-  <h2>🧠 IP Subnetting - vizualizace bitů a podsítí</h2>
+  <h2>🧠 Vizualizace dělení IP na podsítě</h2>
 
-  <label>IP adresa (např. 192.168.1.0):</label><br/>
-  <input type="text" id="ipInput" value="192.168.1.0"/><br/>
+  <label>IP adresa (např. 192.168.0.0):</label><br/>
+  <input type="text" id="ipInput" value="192.168.0.0"/><br/>
 
-<label>Výchozí maska sítě (supernet): <span id="supernetLabel">16</span></label><br/>
-<input type="range" min="8" max="30" value="16" id="supernetSlider"/><br/>
+  <label>Výchozí maska (supernet): <span id="supernetLabel">16</span></label><br/>
+  <input type="range" min="8" max="30" value="16" id="supernetSlider"/><br/>
 
-  <label>Prefix (CIDR): <span id="prefixLabel">24</span></label><br/>
-  <input type="range" min="16" max="30" value="24" id="prefixSlider"/><br/>
-
+  <label>Požadovaný prefix podsítí: <span id="prefixLabel">24</span></label><br/>
+  <input type="range" min="8" max="30" value="24" id="prefixSlider"/><br/>
 
   <div><strong>Binární reprezentace IP adresy:</strong></div>
   <div id="bitDisplay" style="margin: 10px 0;"></div>
@@ -43,44 +42,53 @@
   <script>
     const ipInput = document.getElementById("ipInput");
     const slider = document.getElementById("prefixSlider");
+    const supernetSlider = document.getElementById("supernetSlider");
     const prefixLabel = document.getElementById("prefixLabel");
+    const supernetLabel = document.getElementById("supernetLabel");
     const bitDisplay = document.getElementById("bitDisplay");
     const subnetList = document.getElementById("subnetList");
-    const supernetSlider = document.getElementById("supernetSlider");
-    const supernetLabel = document.getElementById("supernetLabel");
-    const baseIpInt = ipToInt(ip);
-    const supernetMask = 0xFFFFFFFF << (32 - supernetPrefix) >>> 0;
-    const networkBase = baseIpInt & supernetMask;
-    const supernetSize = Math.pow(2, 32 - supernetPrefix);
-    const baseIpInt = ipToInt(ip);
-    const mask = 0xFFFFFFFF << (32 - prefix) >>> 0;
-    const networkBase = baseIpInt & mask;
 
     function ipToInt(ip) {
-      return ip.split('.').reduce((acc, val) => (acc << 8) + parseInt(val), 0);
+      const parts = ip.split('.');
+      if (parts.length !== 4) return null;
+      return parts.reduce((acc, val) => (acc << 8) + parseInt(val), 0);
     }
 
     function intToIp(int) {
       return [(int >>> 24), (int >>> 16 & 255), (int >>> 8 & 255), (int & 255)].join('.');
     }
 
-    function intToBin(int) {
-      return int.toString(2).padStart(32, '0');
-    }
-
     function updateBits() {
       const ip = ipInput.value;
       const prefix = parseInt(slider.value);
+      const supernetPrefix = parseInt(supernetSlider.value);
+
       prefixLabel.textContent = prefix;
+      supernetLabel.textContent = supernetPrefix;
 
-      const octets = ip.split('.');
-      bitDisplay.innerHTML = '';
-
-      if (octets.length !== 4 || octets.some(o => isNaN(o) || o < 0 || o > 255)) {
+      const baseIpInt = ipToInt(ip);
+      if (baseIpInt === null) {
         bitDisplay.textContent = "❌ Neplatná IP adresa!";
         subnetList.innerHTML = "";
         return;
       }
+
+      if (prefix < supernetPrefix) {
+        bitDisplay.textContent = "❌ Požadovaný prefix nemůže být menší než výchozí maska!";
+        subnetList.innerHTML = "";
+        return;
+      }
+
+      const supernetMask = 0xFFFFFFFF << (32 - supernetPrefix) >>> 0;
+      const networkBase = baseIpInt & supernetMask;
+
+      displayBits(networkBase, prefix);
+      generateSubnets(networkBase, supernetPrefix, prefix);
+    }
+
+    function displayBits(ipInt, prefix) {
+      const octets = intToIp(ipInt).split('.');
+      bitDisplay.innerHTML = '';
 
       octets.forEach((octet, octetIndex) => {
         const binOctet = parseInt(octet).toString(2).padStart(8, '0');
@@ -107,26 +115,17 @@
           bitDisplay.appendChild(spacer);
         }
       });
-
-      const supernetPrefix = parseInt(supernetSlider.value);
-      supernetLabel.textContent = supernetPrefix;
-
-      // ochrana – nelze mít výsledný prefix menší než supernet
-      if (prefix < supernetPrefix) {
-        bitDisplay.innerHTML = "❌ Výsledný prefix nemůže být menší než výchozí maska!";
-        subnetList.innerHTML = "";
-        return;
-      }
     }
 
-    function generateSubnets(networkBase, prefix, supernetSize) {
+    function generateSubnets(networkBase, supernetPrefix, prefix) {
       subnetList.innerHTML = '';
 
       const subnetSize = Math.pow(2, 32 - prefix);
+      const supernetSize = Math.pow(2, 32 - supernetPrefix);
       const subnetCount = supernetSize / subnetSize;
 
       for (let i = 0; i < subnetCount; i++) {
-        const subnetBase = baseIpInt + i * subnetSize;
+        const subnetBase = networkBase + i * subnetSize;
         const broadcast = subnetBase + subnetSize - 1;
         const firstHost = subnetSize > 2 ? subnetBase + 1 : subnetBase;
         const lastHost = subnetSize > 2 ? broadcast - 1 : broadcast;
@@ -151,9 +150,9 @@
       }
     }
 
-    generateSubnets(networkBase, prefix, supernetSize);
     ipInput.addEventListener("input", updateBits);
     slider.addEventListener("input", updateBits);
+    supernetSlider.addEventListener("input", updateBits);
     updateBits();
   </script>
 </body>
