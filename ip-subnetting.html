@@ -105,7 +105,10 @@
         div.innerHTML = `
           <strong>Podsíť ${i + 1}:</strong><br/>
           Adresa podsítě: <strong>${intToIp(subnetBase)}</strong> /${prefix}<br/>
-          Binárně: <span class="ip-binary">${intToBin(subnetBase).match(/.{1,8}/g).join('.')}</span><br/>
+          Binárně: <span class="ip-binary">${
+            intToIp(subnetBase).split('.')
+            .map(oct => parseInt(oct).toString(2).padStart(8, '0')).join('.')
+          }</span><br/>
           Broadcast: ${intToIp(broadcast)}<br/>
           Rozsah hostů: ${intToIp(firstHost)} - ${intToIp(lastHost)}<br/>
           Velikost: ${subnetSize - 2} hostů
