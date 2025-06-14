@@ -1,0 +1,29 @@
+<svg width="200" height="220" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="220" fill="white"/>
+
+  <!-- Symbolický kruh -->
+  <circle cx="100" cy="90" r="70" fill="none" stroke="#1F4E79" stroke-width="4"/>
+
+  <!-- Oddělující kříž -->
+  <line x1="100" y1="20" x2="100" y2="160" stroke="#7A7A7A" stroke-width="1"/>
+  <line x1="30" y1="90" x2="170" y2="90" stroke="#7A7A7A" stroke-width="1"/>
+
+  <!-- Matematika – π -->
+  <text x="64" y="68" font-size="24" fill="#1F4E79" font-family="sans-serif">π</text>
+
+  <!-- Fyzika – atom -->
+  <circle cx="130" cy="60" r="10" stroke="#7A7A7A" stroke-width="1.5" fill="none"/>
+  <circle cx="130" cy="60" r="2" fill="#7A7A7A"/>
+  <ellipse cx="130" cy="60" rx="14" ry="6" stroke="#7A7A7A" stroke-width="1" fill="none" transform="rotate(30 130 60)"/>
+
+  <!-- Elektrotechnika – odpor -->
+  <polyline points="55,115 60,120 65,110 70,120 75,110 80,120 85,110 90,115" fill="none" stroke="#7A7A7A" stroke-width="2"/>
+
+  <!-- Informatika – složené závorky -->
+  <text x="115" y="120" font-size="20" fill="#1F4E79" font-family="monospace">{ }</text>
+
+  <!-- Text pod logem -->
+  <text x="100" y="200" font-size="14" text-anchor="middle" fill="#1F4E79" font-family="sans-serif">
+    Výuka MAT | FYZ | EL | INF
+  </text>
+</svg>
