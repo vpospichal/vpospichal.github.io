@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <title>Sbírka odkazů</title>
+  <!-- Font Awesome pro ikony -->
+  <script src="https://kit.fontawesome.com/8589cddb5e.js" crossorigin="anonymous"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -40,53 +43,96 @@
     }
     ul.links a:hover {
       text-decoration: underline;
+	}
+	.icon-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
     }
+
+    .icon-links a {
+      text-align: center;
+      text-decoration: none;
+      color: #333;
+      width: 100px;
+    }
+	.icon-links i {
+		font-size: 48px;
+		display: block;
+		margin-bottom: 8px;
+		transition: color 0.2s;
+	}
+	.icon-links a:hover i {
+      color: #007acc;
+    }
+
+    .icon-links span {
+      display: block;
+      font-size: 14px;
+    }
+
   </style>
 </head>
 <body>
 
-  <h1>Sbírka odkazů</h1>
+	<h1>Sbírka odkazů</h1>
 
-  <div class="category">
-    <h2>Práce</h2>
-    <ul class="links">
-      <li><a href="vykaz.html">Výkaz práce</a></li>
-      <li><a href="odkazy.html">Odkazy</a></li>
-      <li><a href="vimModeStateDiagram.svg">Vim Mode State Diagram</a></li>
-      <li><a href="https://paletton.com/">Paletton</a></li>
-    </ul>
-  </div>
+	<div class="category">
+		<h2>Práce</h2>
+		<ul class="links">
+			<li><a href="vykaz.html">Výkaz práce</a></li>
+			<li><a href="odkazy.html">Odkazy</a></li>
+			<li><a href="vimModeStateDiagram.svg">Vim Mode State Diagram</a></li>
+			<li><a href="https://paletton.com/">Paletton</a></li>
+		</ul>
+	</div>
 
-  <div class="category">
-    <h2>Zábava</h2>
-    <ul class="links">
-      <li><a href="https://www.youtube.com">YouTube</a></li>
-      <li><a href="https://www.twitch.tv">Twitch</a></li>
-      <li><a href="https://www.pixy.cz/apps/hry/kolaps.html">Hra Kolaps</a></li>
-    </ul>
-  </div>
+	<div class="category">
+		<h2>Zábava</h2>
+		<span class="icon-links">
+			<a href="https://www.youtube.com" target="_blank">
+				<i class="fab fa-youtube"></i>
+				<div>YouTube</div>
+			</a>
+			<a href="https://www.twitch.tv" target="_blank">
+				<i class="fab fa-twitch"></i>
+				<span>Twitch</span>
+			</a>
+			<a href="https://www.pixy.cz/apps/hry/kolaps.html" target="_blank">
+				<img src="https://www.pixy.cz/index_assets/favicon-32.png" height="48"><br/>
+				<span>Hra Kolaps</span>
+			</a>
+		</span>
+	</div>
 
-  <div class="category">
-    <h2>Učení</h2>
-    <ul class="links">
-      <li><a href="https://www.w3schools.com/">W3schools</a></li>
-      <li><a href="https://www.khanacademy.org">Khan Academy</a></li>
-      <li><a href="https://www.codecademy.com">Codecademy</a></li>
-      <li><a href="ip-subnetting.html">IP subaddresace</a></li>
-      <li><a href="https://nwalsh.com/docs/tutorials/xsl/xsl/slides.html">XSL Concepts and Practical Use</a></li>
-      <li><a href="https://du.cesnet.cz/cs/navody/object_storage/rclone/rclone-basic-controls/start">Manuál rclone</a></li>
-      <li><a href="https://dev.to/grayhat/the-ultimate-linux-command-cheat-sheet-for-data-engineers-and-analysts-570h">Linux Command Cheat Sheet for Data Engineers and Analysts </a></li>
-    </ul>
-  </div>
+	<div class="category">
+		<h2>Učení</h2>
+		<ul class="links">
+			<li><a href="https://www.w3schools.com/">W3schools</a></li>
+			<!-- https://www.w3schools.com/favicon.ico -->
+			<li><a href="https://www.khanacademy.org">Khan Academy</a></li>
+			<!-- view-source:https://cdn.kastatic.org/images/favicon.ico?logo -->
+			<li><a href="https://www.codecademy.com">Codecademy</a></li>
+			<!-- view-source:https://www.codecademy.com/favicon.ico -->
+			<li><a href="ip-subnetting.html">IP subaddresace</a></li>
+			<li><a href="https://nwalsh.com/docs/tutorials/xsl/xsl/slides.html">XSL Concepts and Practical Use</a></li>
+			<!-- https://nwalsh.com/favicon.ico -->
+			<li><a href="https://du.cesnet.cz/cs/navody/object_storage/rclone/rclone-basic-controls/start">Manuál rclone</a></li>
+			<!-- https://rclone.org/img/rclone-32x32.png -->
+			<li><a href="https://dev.to/grayhat/the-ultimate-linux-command-cheat-sheet-for-data-engineers-and-analysts-570h">Linux Command Cheat Sheet for Data Engineers and Analysts </a></li>
+			<!-- https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png -->
+		</ul>
+	</div>
 
-  <div class="category">
-    <h2>Datasheety</h2>
-    <ul class="links">
-      <li><a href="https://4donline.ihs.com/images/VipMasterIC/IC/SGST/SGST-S-A0002886943/SGST-S-A0002886943-1.pdf?hkey=6D3A4C79FDBF58556ACFDE234799DDF0">8bitový mikrokontrolér STM8S103F3P6 s 8KB Flash</a></li>
-      <li><a href="https://www.ti.com/lit/ds/symlink/ne555.pdf?ts=1746260938577">NE555</a></li>
-      <li><a href="https://www.hadex.cz/navody/g910a.pdf">Solární regulátor MT-1550</a></li>
-    </ul>
-  </div>
+	<div class="category">
+		<h2>Datasheety</h2>
+		<ul class="links">
+			<li><a href="https://4donline.ihs.com/images/VipMasterIC/IC/SGST/SGST-S-A0002886943/SGST-S-A0002886943-1.pdf?hkey=6D3A4C79FDBF58556ACFDE234799DDF0">8bitový mikrokontrolér STM8S103F3P6 s 8KB Flash</a></li>
+			<li><a href="https://www.ti.com/lit/ds/symlink/ne555.pdf?ts=1746260938577">NE555</a></li>
+			<li><a href="https://www.hadex.cz/navody/g910a.pdf">Solární regulátor MT-1550</a></li>
+		</ul>
+	</div>
 
 </body>
 </html>
