@@ -19,6 +19,9 @@
 		<a href="https://www.khanacademy.org" img="https://cdn.kastatic.org/images/favicon.ico?logo">Khan Academy</a>
 		<a href="https://www.codecademy.com" img="https://www.codecademy.com/favicon.ico">Codecademy</a>
 		<a href="ip-subnetting.html" img="ip-address.png">IP subaddresace</a>
+		<a href="https://stackoverflow.com/questions/3577641/how-do-you-parse-and-process-html-xml-in-php?rq=1"
+			img="https://upload.wikimedia.org/wikipedia/commons/e/ef/Stack_Overflow_icon.svg"
+			>How do you parse and process HTML/XML in PHP?</a>
 		<a href="https://nwalsh.com/docs/tutorials/xsl/xsl/slides.html"
 			img="https://nwalsh.com/favicon.ico">XSL Concepts and Practical Use</a>
 		<a href="https://du.cesnet.cz/cs/navody/object_storage/rclone/rclone-basic-controls/start"
