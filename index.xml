@@ -5,6 +5,7 @@
 		<a href="https://rawgit.com/darcyparker/1886716/raw/eab57dfe784f016085251771d65a75a471ca22d4/vimModeStateDiagram.svg"
 			img="Vimlogo.svg">Vim Mode State Diagram</a>
 		<a href="https://paletton.com/" img="https://paletton.com/img/favicon-128.png">Paletton</a>
+		<a href="https://chatgpt.com" img="https://cdn.oaistatic.com/assets/favicon-eex17e9e.ico">ChatGPT</a>
 	</category>
 
 	<category title="Zábava">
@@ -28,6 +29,7 @@
 			img="https://rclone.org/img/rclone-32x32.png">Manuál rclone</a>
 		<a href="https://dev.to/grayhat/the-ultimate-linux-command-cheat-sheet-for-data-engineers-and-analysts-570h"
 			img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">Linux Command Cheat Sheet</a>
+		<a href="https://dev.to/aryan015/localstorage-vs-sessionstorage-vs-cookie-ikj" img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">LocalStorage vs SessionStorage vs Cookie</a>
 	</category>
 
 	<category title="Datasheety">
