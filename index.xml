@@ -2,7 +2,7 @@
 	<category title="Práce">
 		<a href="vykaz.html" img="VykazPrace.png">Výkaz práce</a>
 		<a href="odkazy.html" img="SbirkaOdkazu64.png">Odkazy</a>
-		<a href="awg-tabulka.html">Převodní tabulka AWG</a>
+		<a href="awg-tabulka.html" img="AWG-20-30.jpg">Převodní tabulka AWG</a>
 		<a href="https://rawgit.com/darcyparker/1886716/raw/eab57dfe784f016085251771d65a75a471ca22d4/vimModeStateDiagram.svg"
 			img="Vimlogo.svg">Vim Mode State Diagram</a>
 		<a href="https://paletton.com/" img="https://paletton.com/img/favicon-128.png">Paletton</a>
