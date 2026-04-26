@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWG vs EU vodiče</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin:0; background:#0f172a; color:#e2e8f0; }
+.container { max-width:1100px; margin:auto; padding:20px; }
+h1 { text-align:center; margin-bottom:20px; }
+.card { background:#1e293b; padding:20px; border-radius:16px; margin-bottom:20px; }
+table { width:100%; border-collapse: collapse; }
+th, td { padding:10px; text-align:center; }
+th { background:#334155; }
+tr:hover { background:#334155; cursor:pointer; }
+input, button, select { padding:10px; margin:5px; border-radius:8px; border:none; }
+button { background:#3b82f6; color:white; cursor:pointer; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:800px){ .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>AWG vs EU vodiče</h1>
+
+<div class="card">
+<label>Materiál:</label>
+<select id="material" onchange="updateMaterial()">
+<option value="cu">Měď (Cu)</option>
+<option value="al">Hliník (Al)</option>
+</select>
+</div>
+
+<div class="card">
+<table id="wireTable">
+<thead>
+<tr>
+<th>AWG</th>
+<th>mm² (IEC)</th>
+<th>Proud (kabel)</th>
+<th>Proud (volně ve vzduchu)</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Proud → průřez</h2>
+<input type="number" id="current">
+<button onclick="calcSection()">Vypočítat</button>
+<div id="out1"></div>
+</div>
+
+<div class="card">
+<h2>Průřez → proud</h2>
+<input type="number" id="section">
+<button onclick="calcCurrent()">Vypočítat</button>
+<div id="out2"></div>
+</div>
+</div>
+
+<div class="card">
+<canvas id="chart"></canvas>
+</div>
+</div>
+
+<script>
+const baseData = [
+{awg:20, mm:0.5, cable:6, air:10},
+{awg:18, mm:0.75, cable:10, air:15},
+{awg:17, mm:1, cable:13, air:18},
+{awg:16, mm:1.5, cable:16, air:24},
+{awg:14, mm:2.5, cable:20, air:30},
+{awg:12, mm:4, cable:25, air:36},
+{awg:10, mm:6, cable:32, air:46},
+{awg:8, mm:10, cable:45, air:63},
+{awg:6, mm:16, cable:63, air:85},
+{awg:4, mm:25, cable:80, air:110},
+{awg:2, mm:35, cable:100, air:135}
+];
+
+let data = [];
+let chart;
+
+function updateMaterial(){
+let mat = document.getElementById('material').value;
+data = baseData.map(d => ({
+...d,
+cable: mat==='al' ? Math.round(d.cable*0.8) : d.cable,
+air: mat==='al' ? Math.round(d.air*0.8) : d.air
+}));
+renderTable();
+renderChart();
+}
+
+function renderTable(){
+let tbody = document.querySelector('#wireTable tbody');
+tbody.innerHTML='';
+data.forEach(d=>{
+let tr = document.createElement('tr');
+tr.innerHTML = `<td>${d.awg}</td><td>${d.mm}</td><td>${d.cable}</td><td>${d.air}</td>`;
+tr.onclick = ()=>{
+section.value = d.mm;
+current.value = d.cable;
+};
+tbody.appendChild(tr);
+});
+}
+
+function calcSection(){
+let val = current.value;
+let found = data.find(d=>val<=d.cable);
+out1.innerText = found ? found.mm+' mm²' : 'Mimo rozsah';
+}
+
+function calcCurrent(){
+let val = section.value;
+let found = data.find(d=>val<=d.mm);
+out2.innerText = found ? found.cable+' A (kabel)' : 'Mimo rozsah';
+}
+
+function renderChart(){
+if(chart) chart.destroy();
+chart = new Chart(document.getElementById('chart'), {
+    type:'line',
+    data:{
+        labels:data.map(d=>d.mm),
+        datasets:[
+            {label:'Kabel', data:data.map(d=>d.cable)},
+            {label:'Volně ve vzduchu', data:data.map(d=>d.air)}
+        ]
+    },
+    options:{
+        scales:{
+            x:{ type:'logarithmic', ticks:{color:'white'}},
+            y:{ type:'logarithmic', ticks:{color:'white'}}
+        },
+        plugins:{legend:{labels:{color:'white'}}}
+    }
+});
+}
+
+updateMaterial();
+</script>
+</body>
+</html>
