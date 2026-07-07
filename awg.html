@@ -35,12 +35,13 @@ button { background:#3b82f6; color:white; cursor:pointer; }
 <div class="card">
 <table id="wireTable">
 <thead>
-<tr>
-<th>AWG</th>
-<th>mm² (IEC)</th>
-<th>Proud (kabel)</th>
-<th>Proud (volně ve vzduchu)</th>
-</tr>
+	<tr>
+		<th>AWG přibližně</th>
+		<th>Průměr</th>
+		<th>Průřez</th>
+		<th>Lišta/trubka</th>
+		<th>Pod omítkou/na omítku</th>
+	</tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -68,7 +69,7 @@ button { background:#3b82f6; color:white; cursor:pointer; }
 </div>
 
 <script>
-const baseData = [
+/*const baseData = [
 {awg:20, mm:0.5, cable:6, air:10},
 {awg:18, mm:0.75, cable:10, air:15},
 {awg:17, mm:1, cable:13, air:18},
@@ -81,7 +82,18 @@ const baseData = [
 {awg:4, mm:25, cable:80, air:110},
 {awg:2, mm:35, cable:100, air:135}
 ];
+*/
 
+	const baseData = [
+  { awg: 16, diameter: 1.38, mm: 1.5, pipe: 15, plaster: 17 },
+  { awg: 14, diameter: 1.78, mm: 2.5, pipe: 20, plaster: 24 },
+  { awg: 12, diameter: 2.26, mm: 4,   pipe: 27, plaster: 32 },
+  { awg: 10, diameter: 2.76, mm: 6,   pipe: 34, plaster: 41 },
+  { awg: 8,  diameter: 3.57, mm: 10,  pipe: 46, plaster: 57 },
+  { awg: 6,  diameter: 4.51, mm: 16,  pipe: 62, plaster: 76 },
+  { awg: 4,  diameter: 5.64, mm: 25,  pipe: 80, plaster: 96 },
+  { awg: 2,  diameter: 6.68, mm: 35,  pipe: 99, plaster: 119 }
+];
 let data = [];
 let chart;
 
@@ -101,7 +113,13 @@ let tbody = document.querySelector('#wireTable tbody');
 tbody.innerHTML='';
 data.forEach(d=>{
 let tr = document.createElement('tr');
-tr.innerHTML = `<td>${d.awg}</td><td>${d.mm}</td><td>${d.cable}</td><td>${d.air}</td>`;
+tr.innerHTML = `
+  <td>${d.awg}</td>
+  <td>${d.diameter} mm</td>
+  <td>${d.mm} mm²</td>
+  <td>${d.pipe} A</td>
+  <td>${d.plaster} A</td>
+`;
 tr.onclick = ()=>{
 section.value = d.mm;
 current.value = d.cable;
@@ -112,7 +130,7 @@ tbody.appendChild(tr);
 
 function calcSection(){
 let val = current.value;
-let found = data.find(d=>val<=d.cable);
+let found = data.find(d => val <= d.pipe);
 out1.innerText = found ? found.mm+' mm²' : 'Mimo rozsah';
 }
 
@@ -125,22 +143,28 @@ out2.innerText = found ? found.cable+' A (kabel)' : 'Mimo rozsah';
 function renderChart(){
 if(chart) chart.destroy();
 chart = new Chart(document.getElementById('chart'), {
-    type:'line',
-    data:{
-        labels:data.map(d=>d.mm),
-        datasets:[
-            {label:'Kabel', data:data.map(d=>d.cable)},
-            {label:'Volně ve vzduchu', data:data.map(d=>d.air)}
-        ]
-    },
-    options:{
-        scales:{
-            x:{ type:'logarithmic', ticks:{color:'white'}},
-            y:{ type:'logarithmic', ticks:{color:'white'}}
-        },
-        plugins:{legend:{labels:{color:'white'}}}
-    }
-});
+	type:'line',
+	data:{
+	labels:data.map(d=>d.mm),
+		datasets: [
+			{
+				label: 'Lišta/trubka',
+				data: data.map(d => d.pipe)
+			},
+			{
+				label: 'Pod omítkou / na omítku',
+				data: data.map(d => d.plaster)
+			}
+		]
+	},
+		options:{
+			scales:{
+				x:{ type:'logarithmic', ticks:{color:'white'}},
+				y:{ type:'logarithmic', ticks:{color:'white'}}
+			},
+			plugins:{legend:{labels:{color:'white'}}}
+		}
+	});
 }
 
 updateMaterial();
