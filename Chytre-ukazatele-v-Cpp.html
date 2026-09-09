@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chytré ukazatele v C++ a správa paměti</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f9fa;
+        }
+        h1 {
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #16a085;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #0056b3;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #2d3748;
+            color: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #f7fafc;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Chytré ukazatele v C++ a správa paměti</h1>
+    <p>Tento dokument shrnuje problematiku správy paměti v moderním C++, srovnání chytrých ukazatelů s jinými přístupy a specifika fungování typu <code>std::string</code>.</p>
+
+    <h2>1. Proč používat chytré ukazatele?</h2>
+    <p>Chytré ukazatele (smart pointers) automaticky řídí životní cyklus dynamické paměti na principu <strong>RAII</strong> (<em>Resource Acquisition Is Initialization</em>). Paměť je automaticky uvolněna v destruktoru, jakmile ukazatel opustí svůj rozsah platnosti (scope).</p>
+
+    <h3>Srovnání různých přístupů ke správě paměti</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Vlastnost / Přístup</th>
+                <th>Surové ukazatele (<code>new</code> / <code>delete</code>)</th>
+                <th>Garbage Collection (Java, C#)</th>
+                <th>Chytré ukazatele (C++)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Správa paměti</strong></td>
+                <td>Zcela manuální</td>
+                <td>Plně automatická</td>
+                <td>Automatická přes vlastnictví</td>
+            </tr>
+            <tr>
+                <td><strong>Riziko úniku paměti</strong></td>
+                <td>Vysoké (opomenutí uvolnění)</td>
+                <td>Téměř nulové</td>
+                <td>Minimální</td>
+            </tr>
+            <tr>
+                <td><strong>Dopad na výkon</strong></td>
+                <td>Žádný (nulová režie)</td>
+                <td>Vysoký (pauzy kvůli GC)</td>
+                <td>Nulový až minimální</td>
+            </tr>
+            <tr>
+                <td><strong>Předvídatelnost</strong></td>
+                <td>Přesná (uvolnění ihned)</td>
+                <td>Nepředvídatelná (rozhoduje GC)</td>
+                <td>Přesná (uvolnění ihned)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Typy chytrých ukazatelů v C++</h2>
+
+    <h3>A) <code>std::unique_ptr</code> (Výhradní vlastnictví)</h3>
+    <p>Dynamický objekt vlastní <strong>pouze jedno místo v kódu</strong>. Ukazatel nelze zkopírovat, lze jej pouze přesunout pomocí <code>std::move</code>. Má nulovou režii oproti surovému ukazateli.</p>
+<pre><code>#include &lt;memory&gt;
+#include &lt;iostream&gt;
+
+void uniqueExample() {
+    // Vytvoření unique_ptr (od C++14)
+    std::unique_ptr&lt;int&gt; ptr1 = std::make_unique&lt;int&gt;(10);
+    
+    // std::unique_ptr&lt;int&gt; ptr2 = ptr1; // CHYBA: Kopírování je zakázáno!
+    std::unique_ptr&lt;int&gt; ptr2 = std::move(ptr1); // Správně: Přesun vlastnictví
+} // Zde ptr2 zaniká a paměť se automaticky uvolní</code></pre>
+
+    <h3>B) <code>std::shared_ptr</code> (Sdílené vlastnictví)</h3>
+    <p>Na objekt může odkazovat <strong>více částí programu současně</strong>. Ukazatel interně počítá reference (vlastníky). Paměť se uvolní, až když zanikne poslední <code>shared_ptr</code> mířící na daný objekt.</p>
+<pre><code>void sharedExample() {
+    std::shared_ptr&lt;int&gt; ptr1 = std::make_shared&lt;int&gt;(42);
+    {
+        std::shared_ptr&lt;int&gt; ptr2 = ptr1; // Počet vlastníků = 2
+        std::cout &lt;&lt; ptr1.use_count(); // Vypíše 2
+    } // ptr2 zaniká, počet vlastníků klesá na 1. Paměť stále drží.
+} // ptr1 zaniká, počet vlastníků = 0 -> paměť se maže</code></pre>
+
+    <h3>C) <code>std::weak_ptr</code> (Nedestruktivní odkaz)</h3>
+    <p>Slouží jako doplněk k <code>shared_ptr</code>. Nezvyšuje počítadlo referencí, čímž <strong>brání vzniku cyklických závislostí</strong> (paměťových úniků). Pro přístup k datům je nutné jej dočasně zamknout metodou <code>lock()</code>.</p>
+
+    <h2>3. Jak spravuje paměť typ <code>std::string</code>?</h2>
+    <p>Standardní řetězec <code>std::string</code> uvnitř sebe <strong>nepoužívá chytré ukazatele</strong> typu <code>unique_ptr</code> nebo <code>shared_ptr</code>. Spoléhá na přímou nízkoúrovňovou správu optimalizovanou na výkon.</p>
+
+    <h3>Hlavní důvody tohoto návrhu:</h3>
+    <ul>
+        <li><strong>SSO (Small String Optimization):</strong> Pokud je řetězec krátký (cca do 15–23 znaků), uloží se do fixního pole přímo na <strong>zásobníku (stacku)</strong>. K žádné alokaci na haldě (heapu) nedochází.</li>
+        <li><strong>Sémantika hodnoty:</strong> String se chová jako běžné číslo. Při přiřazení (<code>a = b</code>) se vytvoří nezávislá kopie celého textu. <code>shared_ptr</code> by způsobil nechtěné sdílení modifikací.</li>
+    </ul>
+
+    <h3>Rozdíly v uložení dat</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Typ objektu</th>
+                <th>Umístění dat v paměti</th>
+                <th>Chování při kopírování</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong><code>std::string</code> (krátký)</strong></td>
+                <td>Na zásobníku (stack) uvnitř objektu</td>
+                <td>Znaky se rychle zkopírují v rámci zásobníku.</td>
+            </tr>
+            <tr>
+                <td><strong><code>std::string</code> (dlouhý)</strong></td>
+                <td>Na haldě (heap)</td>
+                <td>Alokuje se nová paměť na haldě a text se překlopí.</td>
+            </tr>
+            <tr>
+                <td><strong><code>std::shared_ptr&lt;std::string&gt;</code></strong></td>
+                <td>Vždy na haldě (heap)</td>
+                <td>Text se nekopíruje, pouze se zvýší počítadlo referencí.</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

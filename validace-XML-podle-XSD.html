@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Validace XML podle XSD se stahováním vzdálených schémat</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        pre { background: #2d3748; color: #f7fafc; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 14px; }
+        code { font-family: 'Fira Code', Consolas, Monaco, monospace; }
+        .keyword { color: #f6e05e; font-weight: bold; }
+        .comment { color: #a0aec0; font-style: italic; }
+        .string { color: #68d391; }
+        .info-box { background-color: #ebf8ff; border-left: 4px solid #4299e1; padding: 15px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+        .warning-box { background-color: #fffaf0; border-left: 4px solid #dd6b20; padding: 15px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Validace XML podle vzdáleného XSD schématu</h1>
+    
+    <p>Pokud XML dokument odkazuje na XSD schéma pomocí vzdáleného URL (např. <code>http://example.com/schema.xsd</code>), je z důvodů bezpečnosti, stability a rychlosti nejlepším postupem schéma nejprve <strong>stáhnout do dočasného adresáře</strong> na lokální disk a následně provést validaci lokálně.</p>
+
+    <div class="info-box">
+        <strong>Proč nestahovat přímo přes libxml2?</strong> Vyhnete se chybám při výpadku sítě, zbytečnému přetěžování vzdáleného serveru při každém požadavku a rizikům spojeným s externími entitami (XXE útoky).
+    </div>
+
+    <h2>1. Kompletní řešení v PHP</h2>
+    <p>Skript využívá <code>cURL</code> pro bezpečné stažení schématu přes HTTP/HTTPS a ukládá jej do dočasného souboru pomocí <code>sys_get_temp_dir()</code>.</p>
+
+    <pre><code><span class="keyword">&lt;?php</span>
+<span class="comment">// Aktivace interního zachytávání chyb pro libxml</span>
+libxml_use_internal_errors(<span class="keyword">true</span>);
+
+<span class="keyword">$xmlFile</span> = <span class="string">'data.xml'</span>;
+
+<span class="keyword">$xml</span> = <span class="keyword">new</span> DOMDocument();
+<span class="keyword">if</span> (!<span class="keyword">$xml</span>-&gt;load(<span class="keyword">$xmlFile</span>)) {
+    <span class="keyword">echo</span> <span class="string">"Chyba: XML soubor nelze načíst.
+"</span>;
+    <span class="keyword">exit</span>(1);
+}
+
+<span class="comment">// 1. Zjištění cesty k XSD schématu pomocí XPath</span>
+<span class="keyword">$xpath</span> = <span class="keyword">new</span> DOMXPath(<span class="keyword">$xml</span>);
+<span class="keyword">$xpath</span>-&gt;registerNamespace(<span class="string">'xsi'</span>, <span class="string">'http://www.w3.org/2001/XMLSchema-instance'</span>);
+
+<span class="keyword">$xsdPath</span> = <span class="keyword">$xpath</span>-&gt;evaluate(<span class="string">'string(/*/@xsi:noNamespaceSchemaLocation)'</span>);
+<span class="keyword">if</span> (empty(<span class="keyword">$xsdPath</span>)) {
+    <span class="keyword">$schemaLocation</span> = <span class="keyword">$xpath</span>-&gt;evaluate(<span class="string">'string(/*/@xsi:schemaLocation)'</span>);
+    <span class="keyword">if</span> (!empty(<span class="keyword">$schemaLocation</span>)) {
+        <span class="keyword">$parts</span> = preg_split(<span class="string">'/\s+/'</span>, trim(<span class="keyword">$schemaLocation</span>));
+        <span class="keyword">$xsdPath</span> = end(<span class="keyword">$parts</span>);
+    }
+}
+
+<span class="keyword">if</span> (empty(<span class="keyword">$xsdPath</span>)) {
+    <span class="keyword">echo</span> <span class="string">"Chyba: XML dokument neobsahuje odkaz na XSD schéma.
+"</span>;
+    <span class="keyword">exit</span>(1);
+}
+
+<span class="comment">// 2. Kontrola, zda se jedná o vzdálené URL a jeho stažení</span>
+<span class="keyword">if</span> (filter_var(<span class="keyword">$xsdPath</span>, FILTER_VALIDATE_URL)) {
+    <span class="keyword">echo</span> <span class="string">"Detekováno vzdálené URL schématu: <span class="keyword">$xsdPath</span>
+"</span>;
+    
+    <span class="keyword">$localXsdPath</span> = sys_get_temp_dir() . <span class="string">'/downloaded_schema_'</span> . md5(<span class="keyword">$xsdPath</span>) . <span class="string">'.xsd'</span>;
+    
+    <span class="comment">// Stažení schématu pomocí cURL</span>
+    <span class="keyword">$ch</span> = curl_init(<span class="keyword">$xsdPath</span>);
+    <span class="keyword">$fp</span> = fopen(<span class="keyword">$localXsdPath</span>, <span class="string">'wb'</span>);
+    curl_setopt(<span class="keyword">$ch</span>, CURLOPT_FILE, <span class="keyword">$fp</span>);
+    curl_setopt(<span class="keyword">$ch</span>, CURLOPT_HEADER, 0);
+    curl_setopt(<span class="keyword">$ch</span>, CURLOPT_FOLLOWLOCATION, <span class="keyword">true</span>);
+    curl_setopt(<span class="keyword">$ch</span>, CURLOPT_TIMEOUT, 10);
+    
+    <span class="keyword">if</span> (curl_exec(<span class="keyword">$ch</span>) === <span class="keyword">false</span> || curl_getinfo(<span class="keyword">$ch</span>, CURLINFO_HTTP_CODE) !== 200) {
+        <span class="keyword">echo</span> <span class="string">"Chyba: Nepodařilo se stáhnout XSD schéma ze vzdáleného serveru.
+"</span>;
+        fclose(<span class="keyword">$fp</span>);
+        curl_close(<span class="keyword">$ch</span>);
+        <span class="keyword">exit</span>(1);
+    }
+    
+    fclose(<span class="keyword">$fp</span>);
+    curl_close(<span class="keyword">$ch</span>);
+    <span class="keyword">$validationPath</span> = <span class="keyword">$localXsdPath</span>;
+} <span class="keyword">else</span> {
+    <span class="comment">// Lokální soubor - sestavení absolutní cesty</span>
+    <span class="keyword">$xmlDir</span> = dirname(realpath(<span class="keyword">$xmlFile</span>));
+    <span class="keyword">$validationPath</span> = <span class="keyword">$xmlDir</span> . <span class="string">'/'</span> . <span class="keyword">$xsdPath</span>;
+}
+
+<span class="comment">// 3. Spuštění validace</span>
+<span class="keyword">if</span> (<span class="keyword">$xml</span>-&gt;schemaValidate(<span class="keyword">$validationPath</span>)) {
+    <span class="keyword">echo</span> <span class="string">"ÚSPĚCH: XML soubor je VALIDNÍ.
+"</span>;
+} <span class="keyword">else</span> {
+    <span class="keyword">echo</span> <span class="string">"CHYBA: XML soubor je NEVALIDNÍ. Nalezené chyby:
+"</span>;
+    <span class="keyword">$errors</span> = libxml_get_errors();
+    <span class="keyword">foreach</span> (<span class="keyword">$errors</span> <span class="keyword">as</span> <span class="keyword">$error</span>) {
+        <span class="keyword">echo</span> sprintf(<span class="string">"- Řádek %d: %s"</span>, <span class="keyword">$error</span>-&gt;line, trim(<span class="keyword">$error</span>-&gt;message)) . <span class="string">"
+"</span>;
+    }
+    libxml_clear_errors();
+}
+
+<span class="comment">// Vyčištění staženého souboru (volitelné)</span>
+<span class="keyword">if</span> (isset(<span class="keyword">$localXsdPath</span>) &amp;&amp; file_exists(<span class="keyword">$localXsdPath</span>)) {
+    unlink(<span class="keyword">$localXsdPath</span>);
+}
+</span></code></pre>
+
+    <h2>2. Kompletní řešení v Bashi</h2>
+    <p>Bash skript využívá nástroje <code>curl</code> nebo <code>wget</code> ke stažení schématu do složky <code>/tmp</code> a následně použije <code>xmllint</code>.</p>
+
+    <pre><code><span class="keyword">#!/bin/bash</span>
+
+XML_FILE=<span class="string">"data.xml"</span>
+TMP_XSD=<span class="string">"/tmp/downloaded_schema_$$.xsd"</span>
+
+<span class="comment"># 1. Zjištění cesty k XSD z XML pomocí xmllint</span>
+XSD_PATH=$(xmllint --xpath <span class="string">"string(/*/@*[local-name()='noNamespaceSchemaLocation'])"</span> <span class="keyword">"$XML_FILE"</span> 2&gt;/dev/null)
+
+<span class="keyword">if</span> [ -z <span class="string">"$XSD_PATH"</span> ]; <span class="keyword">then</span>
+    XSD_PATH=$(xmllint --xpath <span class="string">"string(/*/@*[local-name()='schemaLocation'])"</span> <span class="keyword">"$XML_FILE"</span> 2&gt;/dev/null | awk <span class="string">'{print $2}'</span>)
+<span class="keyword">fi</span>
+
+<span class="keyword">if</span> [ -z <span class="string">"$XSD_PATH"</span> ]; <span class="keyword">then</span>
+    <span class="keyword">echo</span> <span class="string">"Chyba: V XML nebylo nalezeno žádné XSD schéma."</span>
+    <span class="keyword">exit</span> 1
+<span class="keyword">fi</span>
+
+<span class="comment"># 2. Rozhodnutí, zda stahovat z internetu nebo číst lokálně</span>
+<span class="keyword">if</span> [[ <span class="keyword">"$XSD_PATH"</span> =~ ^https?:// ]]; <span class="keyword">then</span>
+    <span class="keyword">echo</span> <span class="string">"Stahuji vzdálené schéma: $XSD_PATH ..."</span>
+    
+    <span class="comment"># Stažení pomocí curl</span>
+    curl -s -f -L <span class="string">"$XSD_PATH"</span> -o <span class="keyword">"$TMP_XSD"</span>
+    
+    <span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span>
+        <span class="keyword">echo</span> <span class="string">"Chyba: Nepodařilo se stáhnout vzdálené XSD schéma."</span>
+        <span class="keyword">exit</span> 1
+    <span class="keyword">fi</span>
+    VALIDATION_SCHEMA=<span class="keyword">"$TMP_XSD"</span>
+<span class="keyword">else</span>
+    VALIDATION_SCHEMA=<span class="keyword">"$XSD_PATH"</span>
+<span class="keyword">fi</span>
+
+<span class="comment"># 3. Samotná validace</span>
+<span class="keyword">echo</span> <span class="string">"Spouštím validaci..."</span>
+OUTPUT=$(xmllint --schema <span class="keyword">"$VALIDATION_SCHEMA"</span> <span class="keyword">"$XML_FILE"</span> --noout 2&gt;&amp;1)
+STATUS=$?
+
+<span class="comment"># Úklid dočasného souboru</span>
+[ -f <span class="keyword">"$TMP_XSD"</span> ] &amp;&amp; rm <span class="keyword">"$TMP_XSD"</span>
+
+<span class="comment"># Vyhodnocení</span>
+<span class="keyword">if</span> [ <span class="keyword">$STATUS</span> -eq 0 ]; <span class="keyword">then</span>
+    <span class="keyword">echo</span> <span class="string">"ÚSPĚCH: XML je validní."</span>
+    <span class="keyword">exit</span> 0
+<span class="keyword">else</span>
+    <span class="keyword">echo</span> <span class="string">"CHYBA: Validace selhala!"</span>
+    <span class="keyword">echo</span> <span class="string">"$OUTPUT"</span>
+    <span class="keyword">exit</span> 1
+<span class="keyword">fi</span>
+</code></pre>
+
+    <div class="warning-box">
+        <strong>Upozornění k síťovému provozu:</strong> Pokud skript zpracovává velké množství XML souborů se stejným vzdáleným URL, doporučuje se implementovat lokální mezipaměť (cache), aby se stejný soubor nestahoval opakovaně při každém spuštění.
+    </div>
+
+</body>
+</html>

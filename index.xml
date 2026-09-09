@@ -6,6 +6,8 @@
 		<a href="vimModeStateDiagram.svg" img="Vimlogo.svg">Vim Mode State Diagram</a>
 		<a href="https://paletton.com/" img="https://paletton.com/img/favicon-128.png">Paletton</a>
 		<a href="https://chatgpt.com" img="https://cdn.oaistatic.com/assets/favicon-eex17e9e.ico">ChatGPT</a>
+		
+		
 	</category>
 
 	<category title="Zábava">
@@ -24,6 +26,7 @@
 		<a href="https://stackoverflow.com/questions/3577641/how-do-you-parse-and-process-html-xml-in-php?rq=1"
 			img="https://upload.wikimedia.org/wikipedia/commons/e/ef/Stack_Overflow_icon.svg"
 			>How do you parse and process HTML/XML in PHP?</a>
+		<a href="validace-XML-podle-XSD.html">Validace XML podle XSD</a>
 		<a href="https://nwalsh.com/docs/tutorials/xsl/xsl/slides.html"
 			img="https://nwalsh.com/favicon.ico">XSL Concepts and Practical Use</a>
 		<a href="https://du.cesnet.cz/cs/navody/object_storage/rclone/rclone-basic-controls/start"
@@ -31,6 +34,8 @@
 		<a href="https://dev.to/grayhat/the-ultimate-linux-command-cheat-sheet-for-data-engineers-and-analysts-570h"
 			img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">Linux Command Cheat Sheet</a>
 		<a href="https://dev.to/aryan015/localstorage-vs-sessionstorage-vs-cookie-ikj" img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">LocalStorage vs SessionStorage vs Cookie</a>
+		<a href="SmithChart.pdf">Smith Chart</a>
+		<a href="Chytre-ukazatele-v-Cpp.html">Chytré ukazatele v C++</a>
 	</category>
 
 	<category title="Datasheety">
