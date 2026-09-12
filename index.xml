@@ -6,15 +6,8 @@
 		<a href="vimModeStateDiagram.svg" img="Vimlogo.svg">Vim Mode State Diagram</a>
 		<a href="https://paletton.com/" img="https://paletton.com/img/favicon-128.png">Paletton</a>
 		<a href="https://chatgpt.com" img="https://cdn.oaistatic.com/assets/favicon-eex17e9e.ico">ChatGPT</a>
+		<a href="evidence-soucastek.html">Evidence součástek</a>
 		
-		
-	</category>
-
-	<category title="Zábava">
-		<a href="https://www.youtube.com" fab="fa-youtube">YouTube</a>
-		<a href="https://www.twitch.tv" fab="fa-twitch">Twitch</a>
-		<a href="https://www.pixy.cz/apps/hry/kolaps.html"
-			img="https://www.pixy.cz/index_assets/favicon-32.png">Hra Kolaps</a>
 	</category>
 
 	<category title="Učení">
@@ -43,5 +36,12 @@
 			img="STM8S103F3P6.jpg">8bitový mikrokontrolér STM8S103F3P6 s 8KB Flash</a>
 		<a href="https://www.ti.com/lit/ds/symlink/ne555.pdf?ts=1746260938577" img="https://botland.cz/blog/wp-content/uploads/2022/04/botl-blg-1.jpg">NE555</a>
 		<a href="https://www.hadex.cz/navody/g910a.pdf" img="https://www.hadex.cz/img/zbozi/g910a.jpg">Solární regulátor MT-1550</a>
+	</category>
+
+	<category title="Zábava">
+		<a href="https://www.youtube.com" fab="fa-youtube">YouTube</a>
+		<a href="https://www.twitch.tv" fab="fa-twitch">Twitch</a>
+		<a href="https://www.pixy.cz/apps/hry/kolaps.html"
+			img="https://www.pixy.cz/index_assets/favicon-32.png">Hra Kolaps</a>
 	</category>
 </links>
