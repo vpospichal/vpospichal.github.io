@@ -27,7 +27,7 @@
 		<a href="https://dev.to/grayhat/the-ultimate-linux-command-cheat-sheet-for-data-engineers-and-analysts-570h"
 			img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">Linux Command Cheat Sheet</a>
 		<a href="https://dev.to/aryan015/localstorage-vs-sessionstorage-vs-cookie-ikj" img="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/8j7kvp660rqzt99zui8e.png">LocalStorage vs SessionStorage vs Cookie</a>
-		<a href="SmithChart.pdf">Smith Chart</a>
+		<a href="SmithChart.pdf" img="SmithChart.png">Smith Chart</a>
 		<a href="Chytre-ukazatele-v-Cpp.html">Chytré ukazatele v C++</a>
 	</category>
 
