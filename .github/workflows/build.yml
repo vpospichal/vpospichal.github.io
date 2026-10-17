@@ -1,0 +1,74 @@
+name: Sestavení a publikování webu
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.xml"
+      - "**/*.xsl"
+      - "**/*.xslt"
+      - "**/*.html"
+      - "**/*.css"
+      - "**/*.js"
+      - "assets/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Stažení repozitáře
+        uses: actions/checkout@v4
+
+      - name: Instalace nástrojů
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc rsync
+
+      - name: Příprava výstupního adresáře
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='_site/' \
+            ./ _site/
+
+      - name: Transformace XML do HTML
+        run: |
+          xsltproc --nonet \
+            --output _site/index.html \
+            index.xsl index.xml
+          test -s _site/index.html
+
+      - name: Uložení webu pro publikování
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publikování webu
+        id: deployment
+        uses: actions/deploy-pages@v4
