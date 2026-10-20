@@ -2,7 +2,7 @@ name: Sestavení a publikování webu
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "**/*.xml"
       - "**/*.xsl"
@@ -47,7 +47,7 @@ jobs:
         run: |
           xsltproc --nonet \
             --output _site/index.html \
-            index.xsl index.xml
+            template.xsl index.xml
           test -s _site/index.html
 
       - name: Uložení webu pro publikování
@@ -56,7 +56,7 @@ jobs:
           path: _site
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     needs: build
     runs-on: ubuntu-latest
 
